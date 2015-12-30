@@ -1,5 +1,3 @@
--- https://github.com/frou/pg2go
-
 CREATE FUNCTION NAME_PG2GO(nm TEXT, exported BOOLEAN) RETURNS TEXT AS $$
   SELECT CASE
     WHEN exported THEN
