@@ -1,7 +1,7 @@
 # Description
 
 [pg2go] is a basic means for a [PostgreSQL] database to generate [Go] struct
-definitions that correspond to its tables & views.
+definitions that correspond to its tables.
 
 Here is a shell session demonstrating use:
 
@@ -52,8 +52,8 @@ made to singularize plural table names.
 If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
 that type name to the `TYPE_PG2GO` function in the .sql file.
 
-If the tables & views you're interested in aren't in the `'public'` schema then
-search and replace that in the .sql file.
+If the tables you're interested in aren't in the `'public'` schema then search
+and replace that in the .sql file.
 
 If you want the struct identifiers, and not just their fields, to be exported
 (start with upper case) then search and replace `NAME_PG2GO(table_name, false)`
