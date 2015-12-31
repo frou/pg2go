@@ -1,5 +1,7 @@
 CREATE FUNCTION NAME_PG2GO(nm TEXT, exported BOOLEAN) RETURNS TEXT AS $$
   SELECT CASE
+    WHEN LOWER(nm) IN ('id', 'uid') THEN
+      CASE WHEN exported THEN UPPER(nm) ELSE LOWER(nm) END
     WHEN exported THEN
       -- snake_case -> PascalCase
       REPLACE(INITCAP(REPLACE(nm, '_', ' ')), ' ', '')
