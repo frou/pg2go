@@ -56,7 +56,8 @@ WITH struct AS (
   SELECT NAME_PG2GO(table_name, false) AS identifier,
          STRING_AGG(E'\t' || NAME_PG2GO(column_name, true) || ' '
                           || TYPE_PG2GO(UPPER(data_type), is_nullable::BOOLEAN)
-                          || ' `db:"' || column_name || '"`',
+                          || ' `db:"' || column_name || '"'
+                          || ' json:"'|| column_name || '"`',
                     E'\n') AS agg_fields
   FROM db_extract GROUP BY table_name
   ORDER BY identifier
