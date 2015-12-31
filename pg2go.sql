@@ -55,7 +55,8 @@ WITH struct AS (
     WHERE table_schema = 'public'
     ORDER BY table_schema, table_name, ordinal_position
   )
-  SELECT NAME_PG2GO(table_name, false) AS identifier,
+  SELECT NAME_PG2GO(REGEXP_REPLACE(table_name, '([^aeiou])s$', '\1'),
+                    false) AS identifier,
          STRING_AGG(E'\t' || NAME_PG2GO(column_name, true) || ' '
                           || TYPE_PG2GO(UPPER(data_type), is_nullable::BOOLEAN)
                           || ' `db:"' || column_name || '"'

@@ -46,6 +46,9 @@ was generated (e.g. `"time"` for `time.Time` & `"database/sql"` for
 Struct fields are tagged `db:"..."` for [package sqlx][sqlx] to pick up on,
 should you wish to use it. Similarly, `json:"..."` for `encoding/json`.
 
+A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L58) is
+made to singularize plural table names.
+
 If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
 that type name to the `TYPE_PG2GO` function in the .sql file.
 
