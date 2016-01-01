@@ -1,19 +1,24 @@
 # Description
 
-[pg2go] is a basic means for a [PostgreSQL] database to generate [Go] struct
-definitions that correspond to its tables.
+[pg2go] is a [PostgreSQL] script that generates [Go] struct definitions for all
+tables in a database.
 
-Here is a shell session demonstrating use:
+Run it on the database using [psql] and redirect the output to a new Go source
+file. Here is a shell session demonstrating this:
 
 ```
 DB=blogdb
 OUT="types_$DB.go"
 
 echo "package main" >"$OUT"
-psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"   # the noteworthy part
+psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"
 goimports -w "$OUT" || gofmt -w "$OUT"
+```
 
-head -n 22 types_blogdb.go                     # peek at the resultant file
+Here we use `head` to peek at the resultant file:
+
+```
+head -n 22 types_blogdb.go
 package main
 
 import (
@@ -22,13 +27,13 @@ import (
 )
 
 type author struct {
-    ID        int       `db:"id" json:"id"`
-    Created   time.Time `db:"created" json:"created"`
-    Admin     bool      `db:"admin" json:"admin"`
-    Name      string    `db:"name" json:"name"`
-    Email     string    `db:"email" json:"email"`
-    LoginSalt []byte    `db:"login_salt" json:"login_salt"`
-    LoginKey  []byte    `db:"login_key" json:"login_key"`
+    ID         int       `db:"id" json:"id"`
+    Created    time.Time `db:"created" json:"created"`
+    Name       string    `db:"name" json:"name"`
+    Admin      bool      `db:"admin" json:"admin"`
+    LoginEmail string    `db:"login_email" json:"login_email"`
+    LoginSalt  []byte    `db:"login_salt" json:"login_salt"`
+    LoginKey   []byte    `db:"login_key" json:"login_key"`
 }
 
 type comment struct {
@@ -52,14 +57,14 @@ A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L78) is
 made to singularize plural table names.
 
 If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
-that type name to the `TYPE_PG2GO` function in the .sql file.
+that type name to the `type_pg2go` function in the `.sql` file.
 
 If the tables you're interested in aren't in the `'public'` schema then search
-and replace that in the .sql file.
+and replace that in the `.sql` file.
 
 If you want the struct identifiers, and not just their fields, to be exported
-(start with upper case) then search and replace `name_pg2go(table_name, false)`
-with `name_pg2go(table_name, true)` in the .sql file.
+(start with upper case) then search and replace `false) AS identifier` with
+`true) AS identifier` in the `.sql` file.
 
 # License
 
@@ -89,6 +94,7 @@ SOFTWARE.
 
 [pg2go]: https://github.com/frou/pg2go
 [postgresql]: https://www.postgresql.org
+[psql]: http://www.postgresql.org/docs/current/static/app-psql.html
 [goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
 [go]: https://www.golang.org
 [sqlx]: https://github.com/jmoiron/sqlx
