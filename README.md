@@ -5,36 +5,38 @@ definitions that correspond to its tables.
 
 Here is a shell session demonstrating use:
 
-    DB=blogdb
-    OUT="types_$DB.go"
+```
+DB=blogdb
+OUT="types_$DB.go"
 
-    echo "package main" >"$OUT"
-    psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"   # the noteworthy part
-    goimports -w "$OUT" || gofmt -w "$OUT"
+echo "package main" >"$OUT"
+psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"   # the noteworthy part
+goimports -w "$OUT" || gofmt -w "$OUT"
 
-    head -n 22 types_blogdb.go                     # peek at the resultant file
-    package main
+head -n 22 types_blogdb.go                     # peek at the resultant file
+package main
 
-    import (
-        "database/sql"
-        "time"
-    )
+import (
+    "database/sql"
+    "time"
+)
 
-    type author struct {
-        ID        int       `db:"id" json:"id"`
-        Created   time.Time `db:"created" json:"created"`
-        Admin     bool      `db:"admin" json:"admin"`
-        Name      string    `db:"name" json:"name"`
-        Email     string    `db:"email" json:"email"`
-        LoginSalt []byte    `db:"login_salt" json:"login_salt"`
-        LoginKey  []byte    `db:"login_key" json:"login_key"`
-    }
+type author struct {
+    ID        int       `db:"id" json:"id"`
+    Created   time.Time `db:"created" json:"created"`
+    Admin     bool      `db:"admin" json:"admin"`
+    Name      string    `db:"name" json:"name"`
+    Email     string    `db:"email" json:"email"`
+    LoginSalt []byte    `db:"login_salt" json:"login_salt"`
+    LoginKey  []byte    `db:"login_key" json:"login_key"`
+}
 
-    type comment struct {
-        ID      int       `db:"id" json:"id"`
-        Created time.Time `db:"created" json:"created"`
-        Post    int       `db:"post" json:"post"`
-        Author  int       `db:"author" json:"author"`
+type comment struct {
+    ID      int       `db:"id" json:"id"`
+    Created time.Time `db:"created" json:"created"`
+    Post    int       `db:"post" json:"post"`
+    Author  int       `db:"author" json:"author"`
+```
 
 # Notes
 
@@ -46,7 +48,7 @@ was generated (e.g. `"time"` for `time.Time` & `"database/sql"` for
 Struct fields are tagged `db:"..."` for [package sqlx][sqlx] to pick up on,
 should you wish to use it. Similarly, `json:"..."` for `encoding/json`.
 
-A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L58) is
+A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L68) is
 made to singularize plural table names.
 
 If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
@@ -56,8 +58,8 @@ If the tables you're interested in aren't in the `'public'` schema then search
 and replace that in the .sql file.
 
 If you want the struct identifiers, and not just their fields, to be exported
-(start with upper case) then search and replace `NAME_PG2GO(table_name, false)`
-with `NAME_PG2GO(table_name, true)` in the .sql file.
+(start with upper case) then search and replace `name_pg2go(table_name, false)`
+with `name_pg2go(table_name, true)` in the .sql file.
 
 # License
 

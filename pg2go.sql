@@ -1,45 +1,55 @@
-CREATE FUNCTION NAME_PG2GO(nm TEXT, exported BOOLEAN) RETURNS TEXT AS $$
+CREATE FUNCTION name_pg2go(nm text, exported boolean) RETURNS text AS $$
   SELECT CASE
-    WHEN LOWER(nm) IN ('id', 'uid') THEN
-      CASE WHEN exported THEN UPPER(nm) ELSE LOWER(nm) END
+    WHEN lower(nm) IN ('id', 'uid') THEN
+      CASE WHEN exported THEN upper(nm) ELSE lower(nm) END
     WHEN exported THEN
       -- snake_case -> PascalCase
-      REPLACE(INITCAP(REPLACE(nm, '_', ' ')), ' ', '')
+      replace(initcap(replace(nm, '_', ' ')), ' ', '')
     ELSE
       -- snake_case -> camelCase
-      LOWER(SUBSTRING(nm, 1, 1)) || SUBSTRING(NAME_PG2GO(nm, true), 2)
+      lower(substring(nm, 1, 1)) || substring(name_pg2go(nm, true), 2)
     END
 $$
 LANGUAGE SQL
 IMMUTABLE;
 
-CREATE FUNCTION TYPE_PG2GO(typ TEXT, nullable BOOLEAN) RETURNS TEXT AS $$
+CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
   SELECT CASE
     WHEN nullable THEN
       CASE typ
-        WHEN 'BIGINT'           THEN 'sql.NullInt64'
-        WHEN 'BOOLEAN'          THEN 'sql.NullBool'
-        WHEN 'DOUBLE PRECISION' THEN 'sql.NullFloat64'
-        WHEN 'INTEGER'          THEN 'sql.NullInt64'
-        WHEN 'REAL'             THEN 'sql.NullFloat64'
-        WHEN 'TEXT'             THEN 'sql.NullString'
+        WHEN 'bigint'           THEN 'sql.NullInt64'
+        WHEN 'boolean'          THEN 'sql.NullBool'
+        WHEN 'double precision' THEN 'sql.NullFloat64'
+        WHEN 'integer'          THEN 'sql.NullInt64'
+        WHEN 'numeric'          THEN 'sql.NullInt64'
+        WHEN 'real'             THEN 'sql.NullFloat64'
+        WHEN 'smallint'         THEN 'sql.NullInt64'
 
-        ELSE 'NEED_GO_TYPE_FOR_NULLABLE_' || REPLACE(typ, ' ', '_')
+        WHEN 'character varying'  THEN 'sql.NullString'
+        WHEN 'character'          THEN 'sql.NullString'
+        WHEN 'text'               THEN 'sql.NullString'
+
+        ELSE 'NEED_GO_TYPE_FOR_NULLABLE_' || replace(typ, ' ', '_')
       END
     ELSE
       CASE typ
-        WHEN 'BIGINT'           THEN 'int'
-        WHEN 'BOOLEAN'          THEN 'bool'
-        WHEN 'DOUBLE PRECISION' THEN 'float64'
-        WHEN 'INTEGER'          THEN 'int'
-        WHEN 'REAL'             THEN 'float32'
-        WHEN 'TEXT'             THEN 'string'
+        WHEN 'bigint'           THEN 'int'
+        WHEN 'boolean'          THEN 'bool'
+        WHEN 'double precision' THEN 'float64'
+        WHEN 'integer'          THEN 'int'
+        WHEN 'numeric'          THEN 'int'
+        WHEN 'real'             THEN 'float32'
+        WHEN 'smallint'         THEN 'int'
 
-        WHEN 'BYTEA'                       THEN '[]byte'
-        WHEN 'TIMESTAMP WITH TIME ZONE'    THEN 'time.Time'
-        WHEN 'TIMESTAMP WITHOUT TIME ZONE' THEN 'time.Time'
+        WHEN 'character varying'  THEN 'string'
+        WHEN 'character'          THEN 'string'
+        WHEN 'text'               THEN 'string'
 
-        ELSE 'NEED_GO_TYPE_FOR_' || REPLACE(typ, ' ', '_')
+        WHEN 'bytea'                       THEN '[]byte'
+        WHEN 'timestamp with time zone'    THEN 'time.Time'
+        WHEN 'timestamp without time zone' THEN 'time.Time'
+
+        ELSE 'NEED_GO_TYPE_FOR_' || replace(typ, ' ', '_')
       END
   END;
 $$
@@ -55,10 +65,10 @@ WITH struct AS (
     WHERE table_schema = 'public'
     ORDER BY table_schema, table_name, ordinal_position
   )
-  SELECT NAME_PG2GO(REGEXP_REPLACE(table_name, '([^aeiou])s$', '\1'),
+  SELECT name_pg2go(regexp_replace(table_name, '([^aeiou])s$', '\1'),
                     false) AS identifier,
-         STRING_AGG(E'\t' || NAME_PG2GO(column_name, true) || ' '
-                          || TYPE_PG2GO(UPPER(data_type), is_nullable::BOOLEAN)
+         string_agg(E'\t' || name_pg2go(column_name, true) || ' '
+                          || type_pg2go(data_type, is_nullable::boolean)
                           || ' `db:"' || column_name || '"'
                           || ' json:"'|| column_name || '"`',
                     E'\n') AS agg_fields
@@ -70,5 +80,5 @@ FROM struct;
 
 ------------------------------------------------------------
 
-DROP FUNCTION NAME_PG2GO(TEXT, BOOLEAN);
-DROP FUNCTION TYPE_PG2GO(TEXT, BOOLEAN);
+DROP FUNCTION name_pg2go(text, boolean);
+DROP FUNCTION type_pg2go(text, boolean);
