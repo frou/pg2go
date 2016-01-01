@@ -29,6 +29,10 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'character'          THEN 'sql.NullString'
         WHEN 'text'               THEN 'sql.NullString'
 
+        -- Non-standard. To obtain this useful type: `go get github.com/lib/pq`
+        WHEN 'timestamp with time zone'    THEN 'pq.NullTime'
+        WHEN 'timestamp without time zone' THEN 'pq.NullTime'
+
         ELSE 'NEED_GO_TYPE_FOR_NULLABLE_' || replace(typ, ' ', '_')
       END
     ELSE
@@ -45,9 +49,10 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'character'          THEN 'string'
         WHEN 'text'               THEN 'string'
 
-        WHEN 'bytea'                       THEN '[]byte'
         WHEN 'timestamp with time zone'    THEN 'time.Time'
         WHEN 'timestamp without time zone' THEN 'time.Time'
+
+        WHEN 'bytea' THEN '[]byte'
 
         ELSE 'NEED_GO_TYPE_FOR_' || replace(typ, ' ', '_')
       END
