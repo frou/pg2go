@@ -6,19 +6,21 @@ tables in a database.
 Run it on the database using [psql] and redirect the output to a new Go source
 file. Here is a shell session demonstrating this:
 
-```
+```shell
 DB=blogdb
 OUT="types_$DB.go"
-
 echo "package main" >"$OUT"
 psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"
 goimports -w "$OUT" || gofmt -w "$OUT"
 ```
 
-Here we use `head` to peek at the resultant file:
+Using `head` to peek at the resultant file:
 
-```
+```shell
 head -n 22 types_blogdb.go
+```
+
+```go
 package main
 
 import (
@@ -68,8 +70,8 @@ If you want the struct identifiers, and not just their fields, to be exported
 
 # License
 
-```
-The MIT License (MIT)
+```text
+The MIT License
 
 Copyright (c) 2015 Duncan Holm
 

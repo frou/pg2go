@@ -25,16 +25,16 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'real'             THEN 'sql.NullFloat64'
         WHEN 'smallint'         THEN 'sql.NullInt64'
 
+        WHEN 'bytea'              THEN '[]byte'
         WHEN 'character varying'  THEN 'sql.NullString'
         WHEN 'character'          THEN 'sql.NullString'
         WHEN 'text'               THEN 'sql.NullString'
-        WHEN 'bytea'              THEN '[]byte'
 
-        WHEN 'timestamp with time zone'    THEN 'pq.NullTime /* go get github.com/lib/pq */'
-        WHEN 'timestamp without time zone' THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'date'                        THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time with time zone'         THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time without time zone'      THEN 'pq.NullTime /* go get github.com/lib/pq */'
+        WHEN 'timestamp with time zone'    THEN 'pq.NullTime /* go get github.com/lib/pq */'
+        WHEN 'timestamp without time zone' THEN 'pq.NullTime /* go get github.com/lib/pq */'
 
         ELSE 'NEED_GO_TYPE_FOR_NULLABLE_' || replace(typ, ' ', '_')
       END
@@ -48,16 +48,16 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'real'             THEN 'float32'
         WHEN 'smallint'         THEN 'int'
 
+        WHEN 'bytea'              THEN '[]byte'
         WHEN 'character varying'  THEN 'string'
         WHEN 'character'          THEN 'string'
         WHEN 'text'               THEN 'string'
-        WHEN 'bytea'              THEN '[]byte'
 
-        WHEN 'timestamp with time zone'    THEN 'time.Time'
-        WHEN 'timestamp without time zone' THEN 'time.Time'
         WHEN 'date'                        THEN 'time.Time'
         WHEN 'time with time zone'         THEN 'time.Time'
         WHEN 'time without time zone'      THEN 'time.Time'
+        WHEN 'timestamp with time zone'    THEN 'time.Time'
+        WHEN 'timestamp without time zone' THEN 'time.Time'
 
         ELSE 'NEED_GO_TYPE_FOR_' || replace(typ, ' ', '_')
       END
