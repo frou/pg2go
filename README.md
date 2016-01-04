@@ -28,7 +28,7 @@ import (
     "time"
 )
 
-type author struct {
+type Author struct {
     ID         int       `db:"id" json:"id"`
     Created    time.Time `db:"created" json:"created"`
     Name       string    `db:"name" json:"name"`
@@ -38,7 +38,7 @@ type author struct {
     LoginKey   []byte    `db:"login_key" json:"login_key"`
 }
 
-type comment struct {
+type Comment struct {
     ID      int       `db:"id" json:"id"`
     Created time.Time `db:"created" json:"created"`
     Post    int       `db:"post" json:"post"`
@@ -55,7 +55,7 @@ was generated (e.g. `"time"` for `time.Time` & `"database/sql"` for
 Struct fields are tagged `db:"..."` for [package sqlx][sqlx] to pick up on,
 should you wish to use it. Similarly, `json:"..."` for `encoding/json`.
 
-A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L78) is
+A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L83) is
 made to singularize plural table names.
 
 If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
@@ -64,9 +64,40 @@ that type name to the `type_pg2go` function in the `.sql` file.
 If the tables you're interested in aren't in the `'public'` schema then search
 and replace that in the `.sql` file.
 
-If you want the struct identifiers, and not just their fields, to be exported
-(start with upper case) then search and replace `false) AS identifier` with
-`true) AS identifier` in the `.sql` file.
+## Support for Enums
+
+With a database schema containing something like:
+
+```plpgsql
+CREATE TYPE post_status AS ENUM ('draft', 'live', 'retracted');
+
+CREATE TABLE post (
+  -- ...
+  status post_status NOT NULL
+  -- ...
+);
+```
+
+The resultant file will contain:
+
+```go
+type Post struct {
+    // ...
+    Status string `db:"status" json:"status"` // Postgres enum. Use with the PostStatus* constants.
+    // ...
+}
+
+// ...
+
+const (
+    PostStatusDraft     = "draft"
+    PostStatusLive      = "live"
+    PostStatusRetracted = "retracted"
+)
+```
+
+A string other than one of the matching constants will be rejected by Postgres
+at `INSERT/UPDATE` time.
 
 # License
 

@@ -68,25 +68,56 @@ IMMUTABLE;
 
 ------------------------------------------------------------
 
-WITH struct AS (
+WITH structs AS (
   WITH db_extract AS (
-    SELECT table_name, column_name, data_type, is_nullable
+    SELECT table_name,
+           column_name,
+           data_type,
+           data_type = 'USER-DEFINED' AS is_udt,
+           udt_name,
+           is_nullable
     FROM information_schema.columns
     WHERE table_schema = 'public'
     ORDER BY table_schema, table_name, ordinal_position
   )
   SELECT name_pg2go(regexp_replace(table_name, '([^aeiou])s$', '\1'),
-                    false) AS identifier,
+                    true) AS type_identifier,
          string_agg(E'\t' || name_pg2go(column_name, true) || ' '
-                          || type_pg2go(data_type, is_nullable::boolean)
+                          || type_pg2go(CASE WHEN is_udt THEN 'text'
+                                             ELSE data_type END,
+                                        is_nullable::boolean)
                           || ' `db:"' || column_name || '"'
-                          || ' json:"'|| column_name || '"`',
+                          || ' json:"'|| column_name || '"`'
+                          || CASE WHEN is_udt THEN ' // Postgres enum. '
+                          || 'Use with the ' || name_pg2go(udt_name, true)
+                          || '* constants.' ELSE '' END,
                     E'\n') AS agg_fields
   FROM db_extract GROUP BY table_name
-  ORDER BY identifier
+  ORDER BY table_name
 )
-SELECT 'type ' || identifier || E' struct {\n' || agg_fields || E'\n}\n'
-FROM struct;
+SELECT 'type ' || type_identifier || E' struct {\n' || agg_fields || E'\n}\n'
+FROM structs;
+
+------------------------------------------------------------
+
+WITH constant_groups AS (
+  WITH db_extract AS (
+    SELECT typname, enumlabel
+    FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid
+  )
+  SELECT string_agg(E'\t' || name_pg2go(typname, true)
+                          || name_pg2go(enumlabel, true) || ' = '
+                          || '"' || enumlabel || '"', E'\n') AS agg_constants
+  FROM db_extract GROUP BY typname
+  ORDER BY typname
+)
+-- TODO: This could be made extra type-safe by delcaring a new type (e.g. `type
+-- foo string`) then using that type for each of the constants (e.g. `const (
+-- fooBar foo = "..." ...)`). For this to work, I think at least an
+-- implementation of https://godoc.org/database/sql/driver#Valuer would have to
+-- be generated too.
+SELECT E'const (\n' || agg_constants || E'\n)\n'
+FROM constant_groups;
 
 ------------------------------------------------------------
 
