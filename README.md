@@ -1,20 +1,21 @@
-# Description
-
 [pg2go] is a [PostgreSQL] script that generates [Go] struct definitions for all
 tables in a database.
 
-Run it on the database using [psql] and redirect the output to a new Go source
-file. Here is a shell session demonstrating this:
+It is designed to be run directly against a database using the official `psql` command, and the output of that redirected to a new `.go` source file.
+
+Here is an example Unix shell session demonstrating this (it assumes there is an existing database called `blogdb` that has a typical schema):
 
 ```shell
 DB=blogdb
-OUT="types_$DB.go"
-echo "package main" >"$OUT"
-psql -q -t -A -d "$DB" -f pg2go.sql >>"$OUT"
-goimports -w "$OUT" || gofmt -w "$OUT"
+OUT_FILE="types_$DB.go"
+
+echo "package main" >"$OUT_FILE"
+psql --quiet --tuples-only --no-align --dbname "$DB" --file pg2go.sql >>"$OUT_FILE"
+
+goimports -w "$OUT_FILE" || gofmt -w "$OUT_FILE"
 ```
 
-Using `head` to peek at the resultant file:
+Finally, we can peek at the contents of the generated `.go` file using the `head` command:
 
 ```shell
 head -n 22 types_blogdb.go
@@ -47,26 +48,19 @@ type Comment struct {
 
 # Notes
 
-Using [goimports] rather than standard `gofmt` to format the resultant file has
-the benefit of automatically importing packages iff they are required by what
-was generated (e.g. `"time"` for `time.Time` & `"database/sql"` for
-`sql.NullString`).
+Using the [goimports] command rather than the standard `gofmt` command to format the resultant file has the benefit of automatically adding import statements for packages if and only if they are used in what was generated (e.g. `"time"` for `time.Time` & `"database/sql"` for `sql.NullString`).
 
-Struct fields are tagged `db:"..."` for [package sqlx][sqlx] to pick up on,
-should you wish to use it. Similarly, `json:"..."` for `encoding/json`.
+Struct fields are tagged `db:"..."` for [package sqlx][sqlx] to pick up on, should you wish to use it. Similarly, `json:"..."` for the standard library package `encoding/json`.
 
-A crude [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L83) is
-made to singularize plural table names.
+An [attempt](https://github.com/frou/pg2go/blob/master/pg2go.sql#L83) is made to singularize plural table names.
 
-If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for
-that type name to the `type_pg2go` function in the `.sql` file.
+If `NEED_GO_TYPE_FOR_...` shows up in the resultant file then add a case for that type name to the `type_pg2go` function in `pg2go.sql`.
 
-If the tables you're interested in aren't in the `'public'` schema then search
-and replace that in the `.sql` file.
+If the tables you're interested in aren't in the default `'public'` schema of your database, then search and replace that text in `pg2go.sql`.
 
 ## Support for Enums
 
-With a database schema containing something like:
+When the database schema has something like:
 
 ```plpgsql
 CREATE TYPE post_status AS ENUM ('draft', 'live', 'retracted');
@@ -96,8 +90,7 @@ const (
 )
 ```
 
-A string other than one of the matching constants will be rejected by Postgres
-at `INSERT/UPDATE` time.
+A value other than one of those constants will be rejected by Postgres when performing an `INSERT` or `UPDATE`.
 
 # License
 
