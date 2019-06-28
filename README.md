@@ -3,7 +3,7 @@ tables in a database.
 
 It is designed to be run directly against a database using the official `psql` command, and the output of that redirected to a new `.go` source file.
 
-Here is an example Unix shell session demonstrating this (it assumes there is an existing database called `blogdb` that has a typical schema):
+Here is an example Unix shell session demonstrating this (it interacts with a hypothetical database called `blogdb`):
 
 ```shell
 DB=blogdb

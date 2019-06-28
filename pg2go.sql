@@ -30,6 +30,7 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'character'          THEN 'sql.NullString'
         WHEN 'text'               THEN 'sql.NullString'
 
+        -- TODO: Go 1.13 stdlib will have its own NullTime?
         WHEN 'date'                        THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time with time zone'         THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time without time zone'      THEN 'pq.NullTime /* go get github.com/lib/pq */'
