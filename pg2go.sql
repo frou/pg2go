@@ -30,7 +30,7 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'character'          THEN 'sql.NullString'
         WHEN 'text'               THEN 'sql.NullString'
 
-        -- TODO: Go 1.13 stdlib will have its own NullTime?
+        -- @todo #0 If Go 1.13 gains NullTime in the stdlib, use that instead.
         WHEN 'date'                        THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time with time zone'         THEN 'pq.NullTime /* go get github.com/lib/pq */'
         WHEN 'time without time zone'      THEN 'pq.NullTime /* go get github.com/lib/pq */'
@@ -112,11 +112,11 @@ WITH constant_groups AS (
   FROM db_extract GROUP BY typname
   ORDER BY typname
 )
--- TODO: This could be made extra type-safe by delcaring a new type (e.g. `type
--- foo string`) then using that type for each of the constants (e.g. `const (
--- fooBar foo = "..." ...)`). For this to work, I think at least an
--- implementation of https://godoc.org/database/sql/driver#Valuer would have to
--- be generated too.
+-- @todo #0 Make generated constants extra type-safe by delcaring a new type
+--  (e.g. `type foo string`) then using that type for each of the constants
+--  (e.g. `const ( fooBar foo = "..." ...)`). For this to work, I think at
+--  least an implementation of https://godoc.org/database/sql/driver#Valuer
+--  would have to be generated too.
 SELECT E'const (\n' || agg_constants || E'\n)\n'
 FROM constant_groups;
 
