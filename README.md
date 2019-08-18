@@ -1,3 +1,5 @@
+[![PDD status](http://www.0pdd.com/svg?name=frou/pg2go)](http://www.0pdd.com/p?name=frou/pg2go)
+
 [pg2go] is a [PostgreSQL] script that generates [Go] struct definitions for all
 tables in a database.
 
