@@ -30,12 +30,11 @@ CREATE FUNCTION type_pg2go(typ text, nullable boolean) RETURNS text AS $$
         WHEN 'character'          THEN 'sql.NullString'
         WHEN 'text'               THEN 'sql.NullString'
 
-        -- @todo #0 If Go 1.13 gains NullTime in the stdlib, use that instead.
-        WHEN 'date'                        THEN 'pq.NullTime /* go get github.com/lib/pq */'
-        WHEN 'time with time zone'         THEN 'pq.NullTime /* go get github.com/lib/pq */'
-        WHEN 'time without time zone'      THEN 'pq.NullTime /* go get github.com/lib/pq */'
-        WHEN 'timestamp with time zone'    THEN 'pq.NullTime /* go get github.com/lib/pq */'
-        WHEN 'timestamp without time zone' THEN 'pq.NullTime /* go get github.com/lib/pq */'
+        WHEN 'date'                        THEN 'sql.NullTime'
+        WHEN 'time with time zone'         THEN 'sql.NullTime'
+        WHEN 'time without time zone'      THEN 'sql.NullTime'
+        WHEN 'timestamp with time zone'    THEN 'sql.NullTime'
+        WHEN 'timestamp without time zone' THEN 'sql.NullTime'
 
         ELSE 'NEED_GO_TYPE_FOR_NULLABLE_' || replace(typ, ' ', '_')
       END
